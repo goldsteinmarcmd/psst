@@ -238,7 +238,7 @@ The runtime (pre‑processor or finetuned model) expands symbols to full text be
 - Prompts sampled from 5 real-world LLM pipelines (dev, legal, chat, extract, analyze)
 - Symbols substituted based on v1.0 glossary
 
-### Results
+### Est. Results
 
 | Use Case       | Avg Tokens Saved | Compression % |
 | -------------- | ---------------- | ------------- |
@@ -271,6 +271,4 @@ As the expressive capacity of Unicode symbols becomes saturated, future-proofing
 These tokens can be embedded into agent dashboards, LLM UIs, or printed for cross-device coordination.
 
 More advanced encodings will emerge as LLMs evolve toward full multimodal symbol comprehension.---
-
-More advanced encodings will emerge as LLMs evolve toward full multimodal symbol comprehension.
 

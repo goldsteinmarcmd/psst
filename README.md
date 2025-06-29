@@ -77,7 +77,7 @@ The runtime (pre‑processor or finetuned model) expands symbols to full text be
 
 | Category              | Impact                                                  |
 | --------------------- | ------------------------------------------------------- |
-| **Token cost**        | 20 – 40 % reduction on repetitive structured prompts.   |
+| **Token cost**        | 20 – 35 % reduction on repetitive structured prompts.   |
 | **Central control**   | One glossary update improves all downstream agents.     |
 | **Debugging**         | Symbolic logs are human‑scannable and diff‑friendly.    |
 | **Multilingual**      | Same symbol maps to different phrases per locale.       |
@@ -230,6 +230,7 @@ The runtime (pre‑processor or finetuned model) expands symbols to full text be
 - Shared terms must be submitted for review under a new `@Common` namespace
 
 ---
+
 
 ## Appendix F · Gradient-Encoded Visual Tokens (Future)
 

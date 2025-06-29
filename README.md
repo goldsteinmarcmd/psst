@@ -231,28 +231,7 @@ The runtime (pre‑processor or finetuned model) expands symbols to full text be
 
 ---
 
-## Appendix F · Prompt Compression Benchmarks
-
-### Test Setup
-
-- Prompts sampled from 5 real-world LLM pipelines (dev, legal, chat, extract, analyze)
-- Symbols substituted based on v1.0 glossary
-
-### Est. Results
-
-| Use Case       | Avg Tokens Saved | Compression % |
-| -------------- | ---------------- | ------------- |
-| Legal Drafting | 87 tokens        | 24%           |
-| Code Comments  | 44 tokens        | 18%           |
-| Report Output  | 62 tokens        | 21%           |
-| QA Responses   | 31 tokens        | 16%           |
-| Data Summaries | 73 tokens        | 26%           |
-
-Average savings range: **16–26%**
-
----
-
-## Appendix G · Gradient-Encoded Visual Tokens (Future)
+## Appendix F · Gradient-Encoded Visual Tokens (Future)
 
 As the expressive capacity of Unicode symbols becomes saturated, future-proofing PSS will involve visual token encoding.
 

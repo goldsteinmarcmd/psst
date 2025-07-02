@@ -1,100 +1,84 @@
-# PSS: Prompt Symbol Standard
-
 *A Specification for Token‑Efficient, Centrally‑Controllable AI Prompting*
 
----
+# PSS: Prompt Symbol Standard
 
-## Abstract
+## Overview
 
-The **Prompt Symbol Standard (PSS)** defines a shared symbolic language for compressing and structuring prompts used with large‑language‑model (LLM) systems. PSS improves token efficiency, enables centrally‑maintained prompt logic, and supports multi‑agent orchestration at scale.
+The Prompt Symbol Standard (PSS) is an open proposal for improving the cost-efficiency, consistency, and observability of LLM-driven applications. It introduces a developer-friendly symbolic compression framework that allows natural language prompts to be abstracted into concise, standardized symbols at runtime.
 
----
-
-## 1 · Problem Statement
-
-LLM products today suffer from:
-
-1. **Redundancy & cost** – long, repeated phrases inflate token usage and spend.
-2. **Fragmented prompts** – multiple teams hand‑tune similar prompts with inconsistent wording.
-3. **Poor observability** – free‑form text makes it difficult to audit or diff changes.
-4. **Limited composability** – hard to assemble complex, multi‑step instructions programmatically.
+PSS is not about replacing human-readable prompt writing — it's about optimizing operations without disrupting developer workflows.
 
 ---
 
-## 2 · PSS Overview
+## 🔧 Workflow
 
-### 2.1 Glossary File (`pss‑glossary.json`)
+The PSS workflow is intentionally ergonomic:
 
-A PSS glossary is a flat JSON dictionary that maps **one UTF‑safe symbol** to **one deterministic phrase**:
+1. **Author Naturally**: Developers write prompts in natural language as usual.
+2. **Compress at Runtime**: A tool like `pss-compress` automatically replaces long, standardized phrases with short symbolic tokens (e.g., `⊕summarize`, `℧tone_friendly`) **before** the prompt is sent to the LLM.
+3. **Restore for Debugging**: Logs and outputs can be re-expanded into full-text form using `pss-expand` — like a linter or transpiler.
+
+> ⚠️ Developers never need to memorize the symbol set. They only interact with it if looking at optimized diffs, logs, or internals.
+
+This achieves human-readability at authoring time and machine-efficiency at execution time.
+
+---
+
+## 💡 Key Concepts
+
+* **Persistent Glossary Context**: Instead of resending full prompt phrases repeatedly, PSS assumes the glossary lives in the system prompt or context window, allowing symbols to act like macros.
+* **Compression**: Fewer tokens = lower cost. This is especially impactful at scale.
+* **Versionable Prompts**: Symbols make diffs smaller and more meaningful (e.g., `⊕tone_friendly` → `⊕tone_serious`).
+* **Cross-Model Compatibility**: PSS enables a shared symbolic interface across different LLMs with varying prompt quirks.
+
+---
+
+## ✅ Use Cases (Today)
+
+You can use PSS *principles* in production now by:
+
+* Defining an internal glossary (`glossary.json`) of your frequently used prompt fragments.
+* Writing a preprocessor (`pss-compress`) that replaces known phrases with short symbols.
+* Expanding logs later with `pss-expand` to aid debugging or observability.
+* Storing the glossary and prompt files in Git for review/version control.
+
+---
+
+## 🧠 Why This Matters
+
+### Cost Savings
+
+Compressing repeated prompt patterns into symbols can reduce token usage by **hundreds or thousands per day**, depending on traffic volume. If context is shared (via system prompt or API), the glossary cost becomes amortized, and individual prompts become drastically cheaper.
+
+### Developer Experience
+
+With PSS, prompt authors continue writing in natural language. The system optimizes underneath them. No new syntax or cognitive load required.
+
+### Governance and Reliability
+
+Prompts become diffable, auditable, and shareable using `glossary.json` — enabling reproducibility and easier debugging.
+
+---
+
+## 📦 Example
 
 ```json
+// glossary.json
 {
-  "version": "PSS-G-v1.0",
-  "glossary": {
-    "🄿": "primary task",
-    "🔍": "search query or lookup",
-    "📄": "summarize document"
-  }
+  "⊕summarize": "Summarize the following text in 3 bullet points.",
+  "℧tone_friendly": "Respond in a warm, casual tone.",
+  "⊗legal_brief": "You are a legal assistant. Highlight key rulings and arguments."
 }
 ```
 
-### 2.2 Prompt Syntax
-
-Compressed prompt using symbols:
-
-```
-🄿: draft intro email. 🔍 company site. 📄 recent press‑release.
+```txt
+// prompt.txt (before compression)
+Please ⊗legal_brief on the case below. ⊕summarize. ℧tone_friendly
 ```
 
-### 2.3 Runtime Expansion
-
-The runtime (pre‑processor or finetuned model) expands symbols to full text before the LLM receives the prompt.
-
 ---
 
-## 3 · Glossary Standards
-
-| Rule              | Requirement                                                                                                 |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Symbol format** | Single UTF‑safe code‑point (emoji, math op, boxed letter).                                                  |
-| **Mapping**       | One‑to‑one, deterministic, case‑insensitive phrase or clause.                                               |
-| **Versioning**    | Semantic version string (`MAJOR.MINOR.PATCH`).                                                              |
-| **Injection**     | Glossary injected at session start or via `X‑PSS‑Glossary` header. Finetuned models may embed the glossary. |
-| **Validation**    | Glossaries must pass the JSON‑Schema in Appendix D.                                                         |
-
----
-
-## 4 · Integration Architecture
-
-- **Editor plugins** (Cursor, VS Code) expand/hover symbols.
-- **LangChain / PromptFlow** modules compress before `.invoke()`.
-- **APIs** include glossary metadata or reference ID.
-- **Finetuning** may replace phrases with symbols in training data for maximal savings.
-
----
-
-## 5 · Benefits
-
-| Category              | Impact                                                  |
-| --------------------- | ------------------------------------------------------- |
-| **Token cost**        | 20% – 35 % reduction on repetitive structured prompts.   |
-| **Central control**   | One glossary update improves all downstream agents.     |
-| **Debugging**         | Symbolic logs are human‑scannable and diff‑friendly.    |
-| **Multilingual**      | Same symbol maps to different phrases per locale.       |
-| **Composable agents** | Symbols act as atomic building blocks across pipelines. |
-
----
-
-## 6 · PSS Tooling
-
-- `` – shrink prompts.
-- `` – restore natural language.
-- `` – IDE tooltip overlay.
-- `` – diff glossary versions. (Reference CLI implementation in Appendix E.)
-
----
-
-## 7 · Definitive Industry‑Neutral Glossary (Core)
+## · Definitive Industry‑Neutral Glossary (Core)
 
 *This glossary is intended to work across most AI workflows. Domain‑specific sets extend it but must not collide with core symbols.*
 
@@ -143,6 +127,20 @@ The runtime (pre‑processor or finetuned model) expands symbols to full text be
 `📚` multi‑doc · `🧬` dataset · `🛰️` external‑API · `🪄` synthetic‑flag
 
 ---
+
+## 📚 Roadmap
+
+* [x] Developer-friendly glossary format (JSON)
+* [x] CLI: `pss-compress`, `pss-expand`
+* [x] VS Code extension (planned)
+* [x] Cross-domain glossary extensions (legal, coding, logistics, etc.)
+* [ ] Open Glossary Repository
+* [ ] Gradient-Encoded Visual Tokens (Appendix F)
+
+---
+
+## 📘 Appendices
+
 
 ## Appendix A · Domain‑Specific Extensions
 
@@ -236,13 +234,13 @@ The runtime (pre‑processor or finetuned model) expands symbols to full text be
 
 As the expressive capacity of Unicode symbols becomes saturated, future-proofing PSS will involve visual token encoding.
 
-### G.1 Overview
+### F.1 Overview
 
 - Visually encoded 16×16 tokens rendered as SVG or bitmap
 - Each token maps to a glossary symbol or prompt clause
 - Enables multimodal inline recognition in advanced LLMs
 
-### G.2 Examples
+### F.2 Examples
 
 - Colored dot matrix grid representing `🧾📈`
 - QR-style pattern encoding the intent: "summarize and graph financial results"
@@ -251,4 +249,18 @@ As the expressive capacity of Unicode symbols becomes saturated, future-proofing
 These tokens can be embedded into agent dashboards, LLM UIs, or printed for cross-device coordination.
 
 More advanced encodings will emerge as LLMs evolve toward full multimodal symbol comprehension.---
+---
 
+## 🧪 Is This Ready for Production?
+
+Not yet — but the *principles* can be applied today.
+
+PSS is not a mature ecosystem yet. Tooling, IDE plugins, and adoption are in early development. However, internal use of a glossary + preprocessor can give you **80% of the benefits** immediately.
+
+This project is in active development. Contributions welcome.
+
+---
+
+## 🤝 Attribution
+
+Proposal and specification led by \[Your Name or Org]. Contributions, discussions, and forks are welcome. See `CONTRIBUTING.md` for guidelines.

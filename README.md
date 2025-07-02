@@ -78,11 +78,11 @@ Please ⊗legal_brief on the case below. ⊕summarize. ℧tone_friendly
 
 ---
 
-### · Definitive Industry‑Neutral Glossary (Core)
+## Definitive Industry‑Neutral Glossary (Core)
 
 *This glossary is intended to work across most AI workflows. Domain‑specific sets extend it but must not collide with core symbols.*
 
-## Communication & Language
+## Communication & Language
 
 `🗣` respond · `💬` dialog · `🅣` tone · `🧑‍🤝‍🧑` audience · `🕵️` persona
 

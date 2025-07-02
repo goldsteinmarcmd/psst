@@ -78,51 +78,51 @@ Please ⊗legal_brief on the case below. ⊕summarize. ℧tone_friendly
 
 ---
 
-## · Definitive Industry‑Neutral Glossary (Core)
+### · Definitive Industry‑Neutral Glossary (Core)
 
 *This glossary is intended to work across most AI workflows. Domain‑specific sets extend it but must not collide with core symbols.*
 
-### 7.1 Communication & Language
+## Communication & Language
 
 `🗣` respond · `💬` dialog · `🅣` tone · `🧑‍🤝‍🧑` audience · `🕵️` persona
 
-### 7.2 Retrieval & Input
+## Retrieval & Input
 
 `🔍` search · `📥` parameters · `📤` specification · `🎯` intent
 
-### 7.3 Structure & Formatting
+## Structure & Formatting
 
 `📄` summary · `📊` structured‑output · `🧾` template · `🧩` insert · `🗃️` format‑type
 
-### 7.4 Tool Use & Agents
+## Tool Use & Agents
 
 `⚙️` tool‑call · `🤖` agent‑plan · `📌` constraint · `🧠` LLM · `📦` memory
 
-### 7.5 Planning & Reasoning
+## Planning & Reasoning
 
 `🧮` calculate · `🧭` plan · `🕹️` simulate
 
-### 7.6 Instructional & Educational
+## Instructional & Educational
 
 `🧑‍🏫` explain · `❓` quiz · `✔️` answer
 
-### 7.7 Flow & Logic
+## Flow & Logic
 
 `⏱` deadline · `🔀` branch · `🕳` placeholder
 
-### 7.8 Alignment, Ethics & Safety
+## Alignment, Ethics & Safety
 
 `🔐` restricted · `🛑` forbidden · `🚷` suppress · `⚖️` fairness · `🎭` adversarial · `📛` harm‑flag
 
-### 7.9 Debugging & Evaluation
+## Debugging & Evaluation
 
 `🧰` diagnostics · `📝` feedback · `🔍‍📝` audit
 
-### 7.10 Control & Mutation
+## Control & Mutation
 
 `🄿` primary‑task · `✎` rewrite · `🔄` retry · `🚩` review
 
-### 7.11 Data / Source Context
+## Data / Source Context
 
 `📚` multi‑doc · `🧬` dataset · `🛰️` external‑API · `🪄` synthetic‑flag
 

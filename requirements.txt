@@ -1,0 +1,13 @@
+# psst: Prompt Symbol Standard Technology
+# Core dependencies for the compiler and CLI tools
+
+# Core dependencies
+requests>=2.25.0  # Required for OpenAI API integration (psst-openai tool)
+
+# The psst compiler core is designed to be lightweight and dependency-free
+# Only the OpenAI integration requires external dependencies
+
+# For development and testing (optional):
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0 

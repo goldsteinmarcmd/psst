@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""
+psst-expand: Expand psst symbols back to natural language
+Usage: psst-expand input.psst [--output output.txt] [--glossary glossary.json]
+"""
+
+import sys
+import argparse
+from psst_compiler import expand_file
+
+def main():
+    parser = argparse.ArgumentParser(description="Expand psst symbols back to natural language")
+    parser.add_argument("input", help="Input psst file to expand")
+    parser.add_argument("--output", "-o", help="Output file (default: input_expanded.txt)")
+    parser.add_argument("--glossary", "-g", default="core_glossary.json", 
+                       help="Glossary file (default: core_glossary.json)")
+    
+    args = parser.parse_args()
+    
+    try:
+        output_file = expand_file(args.input, args.output, args.glossary)
+        print(f"✓ Expanded: {args.input} → {output_file}")
+        
+        # Show expansion stats
+        with open(args.input, 'r') as f:
+            compressed_size = len(f.read())
+        with open(output_file, 'r') as f:
+            expanded_size = len(f.read())
+        
+        expansion = expanded_size - compressed_size
+        if expansion > 0:
+            print(f"✓ Expanded by {expansion} characters")
+        else:
+            print("✓ No expansion (no symbols found)")
+            
+    except Exception as e:
+        print(f"✗ Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main() 

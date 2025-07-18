@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""
+psst-compress: Compress natural language prompts using psst symbols
+Usage: psst-compress input.txt [--output output.psst] [--glossary glossary.json]
+"""
+
+import sys
+import argparse
+from psst_compiler import compress_file
+
+def main():
+    parser = argparse.ArgumentParser(description="Compress prompts using psst symbols")
+    parser.add_argument("input", help="Input text file to compress")
+    parser.add_argument("--output", "-o", help="Output file (default: input.psst)")
+    parser.add_argument("--glossary", "-g", default="core_glossary.json", 
+                       help="Glossary file (default: core_glossary.json)")
+    
+    args = parser.parse_args()
+    
+    try:
+        output_file = compress_file(args.input, args.output, args.glossary)
+        print(f"✓ Compressed: {args.input} → {output_file}")
+        
+        # Show compression stats
+        with open(args.input, 'r') as f:
+            original_size = len(f.read())
+        with open(output_file, 'r') as f:
+            compressed_size = len(f.read())
+        
+        savings = original_size - compressed_size
+        if savings > 0:
+            percentage = (savings / original_size) * 100
+            print(f"✓ Saved {savings} characters ({percentage:.1f}%)")
+        else:
+            print("✓ No compression achieved (no matching symbols found)")
+            
+    except Exception as e:
+        print(f"✗ Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main() 

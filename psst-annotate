@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""
+psst-annotate: Show symbol annotations and tooltips for psst files
+Usage: psst-annotate input.psst [--glossary glossary.json] [--format text|json]
+"""
+
+import sys
+import json
+import argparse
+from psst_compiler import PsstCompiler
+
+def main():
+    parser = argparse.ArgumentParser(description="Annotate psst files with symbol meanings")
+    parser.add_argument("input", help="Input psst file to annotate")
+    parser.add_argument("--glossary", "-g", default="core_glossary.json", 
+                       help="Glossary file (default: core_glossary.json)")
+    parser.add_argument("--format", "-f", choices=["text", "json"], default="text",
+                       help="Output format (default: text)")
+    
+    args = parser.parse_args()
+    
+    try:
+        compiler = PsstCompiler(args.glossary)
+        
+        with open(args.input, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        annotations = compiler.annotate(content)
+        
+        if args.format == "json":
+            # JSON output for programmatic use
+            result = {
+                "file": args.input,
+                "content": content,
+                "annotations": [
+                    {"symbol": symbol, "phrase": phrase} 
+                    for symbol, phrase, _ in annotations
+                ]
+            }
+            print(json.dumps(result, indent=2, ensure_ascii=False))
+        
+        else:
+            # Human-readable text output
+            print(f"📄 Annotations for: {args.input}")
+            print("=" * (len(args.input) + 20))
+            print()
+            
+            if annotations:
+                print("🔍 Symbols found:")
+                for symbol, phrase, _ in annotations:
+                    print(f"  {symbol} → {phrase}")
+                print()
+                
+                print("📝 Annotated content:")
+                print("-" * 40)
+                result_content = content
+                for symbol, phrase, _ in annotations:
+                    # Add annotations inline
+                    tooltip = f"{symbol}[{phrase}]"
+                    result_content = result_content.replace(symbol, tooltip)
+                print(result_content)
+            else:
+                print("ℹ️  No psst symbols found in this file.")
+                print()
+                print("📝 Original content:")
+                print("-" * 40)
+                print(content)
+                
+    except Exception as e:
+        print(f"✗ Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main() 

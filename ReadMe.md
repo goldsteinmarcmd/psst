@@ -1,22 +1,22 @@
 *A Specification for Token‑Efficient, Centrally‑Controllable AI Prompting*
 
-# psst: Prompt Symbol Standard Technology
+# PSS: Prompt Symbol Standard
 
 ## Overview
 
-The Prompt Symbol Standard Technology (psst) is an open proposal for improving the cost-efficiency, consistency, and observability of LLM-driven applications. It introduces a developer-friendly symbolic compression framework that allows natural language prompts to be abstracted into concise, standardized symbols at runtime.
+The Prompt Symbol Standard (PSS) is an open proposal for improving the cost-efficiency, consistency, and observability of LLM-driven applications. It introduces a developer-friendly symbolic compression framework that allows natural language prompts to be abstracted into concise, standardized symbols at runtime.
 
-psst is not about replacing human-readable prompt writing — it's about optimizing operations without disrupting developer workflows.
+PSS is not about replacing human-readable prompt writing — it's about optimizing operations without disrupting developer workflows.
 
 ---
 
 ## 🔧 Workflow
 
-The psst workflow is intentionally ergonomic:
+The PSS workflow is intentionally ergonomic:
 
 1. **Author Naturally**: Developers write prompts in natural language as usual.
-2. **Compress at Runtime**: A tool like `psst-compress` automatically replaces long, standardized phrases with short symbolic tokens (e.g., `⊕summarize`, `℧tone_friendly`) **before** the prompt is sent to the LLM.
-3. **Restore for Debugging**: Logs and outputs can be re-expanded into full-text form using `psst-expand` — like a linter or transpiler.
+2. **Compress at Runtime**: A tool like `pss-compress` automatically replaces long, standardized phrases with short symbolic tokens (e.g., `⊕summarize`, `℧tone_friendly`) **before** the prompt is sent to the LLM.
+3. **Restore for Debugging**: Logs and outputs can be re-expanded into full-text form using `pss-expand` — like a linter or transpiler.
 
 > ⚠️ Developers never need to memorize the symbol set. They only interact with it if looking at optimized diffs, logs, or internals.
 
@@ -26,20 +26,20 @@ This achieves human-readability at authoring time and machine-efficiency at exec
 
 ## 💡 Key Concepts
 
-* **Persistent Glossary Context**: Instead of resending full prompt phrases repeatedly, psst assumes the glossary lives in the system prompt or context window, allowing symbols to act like macros.
+* **Persistent Glossary Context**: Instead of resending full prompt phrases repeatedly, PSS assumes the glossary lives in the system prompt or context window, allowing symbols to act like macros.
 * **Compression**: Fewer tokens = lower cost. This is especially impactful at scale.
 * **Versionable Prompts**: Symbols make diffs smaller and more meaningful (e.g., `⊕tone_friendly` → `⊕tone_serious`).
-* **Cross-Model Compatibility**: psst enables a shared symbolic interface across different LLMs with varying prompt quirks.
+* **Cross-Model Compatibility**: PSS enables a shared symbolic interface across different LLMs with varying prompt quirks.
 
 ---
 
 ## ✅ Use Cases (Today)
 
-You can use psst *principles* in production now by:
+You can use PSS *principles* in production now by:
 
 * Defining an internal glossary (`glossary.json`) of your frequently used prompt fragments.
-* Writing a preprocessor (`psst-compress`) that replaces known phrases with short symbols.
-* Expanding logs later with `psst-expand` to aid debugging or observability.
+* Writing a preprocessor (`pss-compress`) that replaces known phrases with short symbols.
+* Expanding logs later with `pss-expand` to aid debugging or observability.
 * Storing the glossary and prompt files in Git for review/version control.
 
 ---
@@ -52,7 +52,7 @@ Compressing repeated prompt patterns into symbols can reduce token usage by **hu
 
 ### Developer Experience
 
-With psst, prompt authors continue writing in natural language. The system optimizes underneath them. No new syntax or cognitive load required.
+With PSS, prompt authors continue writing in natural language. The system optimizes underneath them. No new syntax or cognitive load required.
 
 ### Governance and Reliability
 
@@ -131,7 +131,7 @@ Please ⊗legal_brief on the case below. ⊕summarize. ℧tone_friendly
 ## 📚 Roadmap
 
 * [x] Developer-friendly glossary format (JSON)
-* [x] CLI: `psst-compress`, `psst-expand`
+* [x] CLI: `pss-compress`, `pss-expand`
 * [x] VS Code extension (planned)
 * [x] Cross-domain glossary extensions (legal, coding, logistics, etc.)
 * [ ] Open Glossary Repository
@@ -189,7 +189,7 @@ Please ⊗legal_brief on the case below. ⊕summarize. ℧tone_friendly
 
 ---
 
-## Appendix C · JSON Schema for psst Glossary
+## Appendix C · JSON Schema for PSS Glossary
 
 ```json
 {
@@ -214,9 +214,29 @@ Please ⊗legal_brief on the case below. ⊕summarize. ℧tone_friendly
 ## Appendix D · CLI Tool Reference
 
 - `psst-compress input.txt` → replaces phrases with symbols
-- `psst-expand input.psst` → restores symbols to phrases
-- `psst-annotate file.psst` → shows hoverable tooltips
+- `psst-expand input.pss` → restores symbols to phrases
+- `psst-annotate file.pss` → shows hoverable tooltips
 - `psst-compare old.json new.json` → diffs two glossary versions
+- `psst-openai "prompt" --session name` → send compressed prompts to OpenAI with conversation sessions
+
+### Session Management
+
+The `psst-openai` tool supports conversation sessions that pay for glossary tokens only once per conversation:
+
+```bash
+# Start new conversation (pays for glossary once)
+psst-openai "⊕summarize AI concepts" --session research
+
+# Continue conversation (FREE glossary!)
+psst-openai "📄provide_examples" --session research
+
+# Manage sessions
+psst-openai --list-sessions
+psst-openai --delete-session research
+psst-openai --session-info --session research
+```
+
+This dramatically reduces token costs for multi-turn conversations by sending symbol definitions only once per session.
 
 ---
 
@@ -232,7 +252,7 @@ Please ⊗legal_brief on the case below. ⊕summarize. ℧tone_friendly
 
 ## Appendix F · Gradient-Encoded Visual Tokens (Future)
 
-As the expressive capacity of Unicode symbols becomes saturated, future-proofing psst will involve visual token encoding.
+As the expressive capacity of Unicode symbols becomes saturated, future-proofing PSS will involve visual token encoding.
 
 ### F.1 Overview
 
@@ -255,9 +275,12 @@ More advanced encodings will emerge as LLMs evolve toward full multimodal symbol
 
 Not yet — but the *principles* can be applied today.
 
-psst is not a mature ecosystem yet. Tooling, IDE plugins, and adoption are in early development. However, internal use of a glossary + preprocessor can give you **80% of the benefits** immediately.
+PSS is not a mature ecosystem yet. Tooling, IDE plugins, and adoption are in early development. However, internal use of a glossary + preprocessor can give you **80% of the benefits** immediately.
 
 This project is in active development. Contributions welcome.
 
 ---
 
+## 🤝 Attribution
+
+Proposal and specification led by \[Your Name or Org]. Contributions, discussions, and forks are welcome. See `CONTRIBUTING.md` for guidelines.

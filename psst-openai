@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
-psst-openai: Send psst-compressed prompts to OpenAI API
-Usage: psst-openai "Your prompt here" [--model gpt-4] [--system "System prompt"] [--glossary path/to/glossary.json]
+psst-openai: Send psst-compressed prompts to OpenAI API with conversation sessions
+Usage: psst-openai "Your prompt here" [--session session_name] [--new-session] [--list-sessions]
 """
 
 import os
 import sys
 import argparse
 import json
+import time
+from datetime import datetime
 from typing import Dict, List, Optional, Union
+from pathlib import Path
 try:
     import requests
 except ImportError:
@@ -21,6 +24,109 @@ from psst_compiler import PsstCompiler
 DEFAULT_MODEL = "gpt-3.5-turbo"
 DEFAULT_API_KEY_ENV = "OPENAI_API_KEY"
 DEFAULT_GLOSSARY = "core_glossary.json"
+SESSIONS_DIR = Path.home() / ".psst-sessions"
+
+class ConversationSession:
+    """Manages conversation sessions with message history."""
+    
+    def __init__(self, session_name: str):
+        self.session_name = session_name
+        self.session_dir = SESSIONS_DIR / session_name
+        self.session_file = self.session_dir / "conversation.json"
+        self.messages: List[Dict] = []
+        self.metadata = {
+            "created": None,
+            "last_updated": None,
+            "total_tokens": 0,
+            "message_count": 0,
+            "model": DEFAULT_MODEL
+        }
+        self._ensure_session_dir()
+        self._load_session()
+    
+    def _ensure_session_dir(self):
+        """Create session directory if it doesn't exist."""
+        self.session_dir.mkdir(parents=True, exist_ok=True)
+    
+    def _load_session(self):
+        """Load existing session or create new one."""
+        if self.session_file.exists():
+            try:
+                with open(self.session_file, 'r') as f:
+                    data = json.load(f)
+                    self.messages = data.get("messages", [])
+                    self.metadata = data.get("metadata", self.metadata)
+            except (json.JSONDecodeError, OSError) as e:
+                print(f"⚠️  Warning: Could not load session {self.session_name}: {e}")
+                print("   Starting fresh session.")
+        else:
+            # New session
+            self.metadata["created"] = datetime.now().isoformat()
+    
+    def save_session(self):
+        """Save session to disk."""
+        self.metadata["last_updated"] = datetime.now().isoformat()
+        
+        data = {
+            "messages": self.messages,
+            "metadata": self.metadata
+        }
+        
+        try:
+            with open(self.session_file, 'w') as f:
+                json.dump(data, f, indent=2)
+        except OSError as e:
+            print(f"⚠️  Warning: Could not save session: {e}")
+    
+    def add_system_message(self, content: str):
+        """Add system message (usually containing glossary)."""
+        if not self.has_system_message():
+            self.messages.append({"role": "system", "content": content})
+    
+    def add_user_message(self, content: str):
+        """Add user message to conversation."""
+        self.messages.append({"role": "user", "content": content})
+        self.metadata["message_count"] += 1
+    
+    def add_assistant_message(self, content: str, usage: Optional[Dict] = None):
+        """Add assistant response to conversation."""
+        self.messages.append({"role": "assistant", "content": content})
+        if usage:
+            self.metadata["total_tokens"] += usage.get("total_tokens", 0)
+    
+    def has_system_message(self) -> bool:
+        """Check if session already has a system message (with glossary)."""
+        return any(msg["role"] == "system" for msg in self.messages)
+    
+    def get_messages(self) -> List[Dict]:
+        """Get all messages for API call."""
+        return self.messages.copy()
+    
+    def is_new_session(self) -> bool:
+        """Check if this is a brand new session."""
+        return len(self.messages) == 0
+    
+    @classmethod
+    def list_sessions(cls) -> List[str]:
+        """List all available sessions."""
+        if not SESSIONS_DIR.exists():
+            return []
+        
+        sessions = []
+        for session_dir in SESSIONS_DIR.iterdir():
+            if session_dir.is_dir() and (session_dir / "conversation.json").exists():
+                sessions.append(session_dir.name)
+        return sorted(sessions)
+    
+    @classmethod
+    def delete_session(cls, session_name: str) -> bool:
+        """Delete a session."""
+        session_dir = SESSIONS_DIR / session_name
+        if session_dir.exists():
+            import shutil
+            shutil.rmtree(session_dir)
+            return True
+        return False
 
 def get_api_key() -> str:
     """Get API key from environment variable."""
@@ -33,12 +139,11 @@ def get_api_key() -> str:
     return api_key
 
 def call_openai_api(
-    prompt: str, 
+    messages: List[Dict],
     model: str = DEFAULT_MODEL,
-    system_prompt: Optional[str] = None,
     api_key: Optional[str] = None
 ) -> Dict:
-    """Send prompt to OpenAI API and return response."""
+    """Send messages to OpenAI API and return response."""
     if api_key is None:
         api_key = get_api_key()
     
@@ -46,11 +151,6 @@ def call_openai_api(
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
     }
-    
-    messages = []
-    if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": prompt})
     
     payload = {
         "model": model,
@@ -72,15 +172,38 @@ def call_openai_api(
             print(f"   Response: {e.response.text}")
         sys.exit(1)
 
-def compress_prompt(prompt: str, glossary_path: str = DEFAULT_GLOSSARY) -> tuple[str, int]:
-    """Compress prompt using psst compiler. Returns (compressed_prompt, savings)."""
+def build_system_prompt(
+    custom_system_prompt: Optional[str] = None,
+    glossary: Optional[Dict[str, str]] = None
+) -> str:
+    """Build the system prompt with glossary and custom instructions."""
+    enhanced_system_prompt = ""
+    
+    # Add glossary definitions if provided
+    if glossary:
+        enhanced_system_prompt += "You will receive messages containing special symbols. Here are their meanings:\n\n"
+        for symbol, meaning in sorted(glossary.items()):
+            enhanced_system_prompt += f"• {symbol}: {meaning}\n"
+        enhanced_system_prompt += "\nPlease interpret these symbols according to their meanings when responding.\n"
+    
+    # Add user's system prompt if provided
+    if custom_system_prompt:
+        if enhanced_system_prompt:
+            enhanced_system_prompt += "\n" + custom_system_prompt
+        else:
+            enhanced_system_prompt = custom_system_prompt
+    
+    return enhanced_system_prompt
+
+def compress_prompt(prompt: str, glossary_path: str = DEFAULT_GLOSSARY) -> tuple[str, int, Dict[str, str]]:
+    """Compress prompt using psst compiler. Returns (compressed_prompt, savings, glossary)."""
     try:
         compiler = PsstCompiler(glossary_path)
         original_length = len(prompt)
         compressed = compiler.compress(prompt)
         compressed_length = len(compressed)
         savings = original_length - compressed_length
-        return compressed, savings
+        return compressed, savings, compiler.glossary
     except Exception as e:
         print(f"❌ Compression failed: {e}")
         sys.exit(1)
@@ -110,20 +233,62 @@ def format_response(response_data: Dict, show_usage: bool = False) -> str:
         print("Raw response:", json.dumps(response_data, indent=2))
         sys.exit(1)
 
+def show_session_info(session: ConversationSession):
+    """Display session information."""
+    print(f"💬 Session: {session.session_name}")
+    if session.is_new_session():
+        print("   Status: New session")
+    else:
+        print(f"   Messages: {len(session.messages)}")
+        print(f"   User messages: {session.metadata['message_count']}")
+        print(f"   Total tokens used: {session.metadata['total_tokens']}")
+        print(f"   Model: {session.metadata.get('model', DEFAULT_MODEL)}")
+        if session.metadata.get('created'):
+            print(f"   Created: {session.metadata['created'][:19].replace('T', ' ')}")
+        
+        # Check if glossary was already sent
+        if session.has_system_message():
+            print("   💰 Glossary: Already sent (no additional token cost)")
+        else:
+            print("   💰 Glossary: Will be sent this session")
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Send psst-compressed prompts to OpenAI API",
+        description="Send psst-compressed prompts to OpenAI API with conversation sessions",
         epilog="""
 Examples:
-  psst-openai "Explain quantum computing"
-  cat prompt.txt | psst-openai
-  psst-openai --system "You are a helpful assistant" "What is AI?"
-  psst-openai --show-tokens --model gpt-4 "Complex analysis task"
+  # Start new conversation
+  psst-openai "Explain quantum computing" --session physics
+
+  # Continue existing conversation  
+  psst-openai "Can you elaborate?" --session physics
+  
+  # Force new session (replaces existing)
+  psst-openai "Start fresh" --session physics --new-session
+  
+  # List all sessions
+  psst-openai --list-sessions
+  
+  # Use default session
+  psst-openai "Hello" 
+  
+  # Read from stdin
+  cat prompt.txt | psst-openai --session analysis
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
     parser.add_argument("prompt", nargs="?", help="Prompt text (omit to read from stdin)")
+    parser.add_argument("--session", "-S", default="default", 
+                        help="Session name for conversation continuity (default: 'default')")
+    parser.add_argument("--new-session", "-N", action="store_true",
+                        help="Start a new session (replacing existing if same name)")
+    parser.add_argument("--list-sessions", "-L", action="store_true",
+                        help="List all available sessions and exit")
+    parser.add_argument("--delete-session", metavar="NAME",
+                        help="Delete specified session and exit")
+    parser.add_argument("--session-info", "-I", action="store_true",
+                        help="Show session information before processing")
     parser.add_argument("--model", "-m", default=DEFAULT_MODEL, 
                         help=f"OpenAI model to use (default: {DEFAULT_MODEL})")
     parser.add_argument("--system", "-s", help="System prompt")
@@ -137,8 +302,45 @@ Examples:
                         help="Return raw JSON response")
     parser.add_argument("--usage", "-u", action="store_true",
                         help="Show token usage statistics")
+    parser.add_argument("--no-glossary", action="store_true",
+                        help="Don't include symbol definitions in system prompt")
     
     args = parser.parse_args()
+    
+    # Handle session management commands
+    if args.list_sessions:
+        sessions = ConversationSession.list_sessions()
+        if sessions:
+            print("Available sessions:")
+            for session_name in sessions:
+                session = ConversationSession(session_name)
+                status = "empty" if session.is_new_session() else f"{len(session.messages)} messages"
+                tokens = f", {session.metadata['total_tokens']} tokens" if session.metadata['total_tokens'] > 0 else ""
+                print(f"  • {session_name} ({status}{tokens})")
+        else:
+            print("No sessions found.")
+        return
+    
+    if args.delete_session:
+        if ConversationSession.delete_session(args.delete_session):
+            print(f"✅ Deleted session: {args.delete_session}")
+        else:
+            print(f"❌ Session not found: {args.delete_session}")
+        return
+    
+    # Load or create session
+    session = ConversationSession(args.session)
+    
+    # Handle new session flag
+    if args.new_session and not session.is_new_session():
+        ConversationSession.delete_session(args.session)
+        session = ConversationSession(args.session)
+        print(f"🆕 Started new session: {args.session}")
+    
+    # Show session info if requested
+    if args.session_info:
+        show_session_info(session)
+        print()
     
     # Read from stdin if no prompt argument and stdin has data
     stdin_prompt = read_prompt_from_stdin()
@@ -153,18 +355,34 @@ Examples:
         print("❌ Error: Empty prompt provided")
         sys.exit(1)
     
+    # Update session model
+    session.metadata["model"] = args.model
+    
     # Compress prompt unless raw mode
+    glossary = None
     if not args.raw:
-        compressed, savings = compress_prompt(prompt, args.glossary)
+        compressed, savings, glossary = compress_prompt(prompt, args.glossary)
         
         if args.show_tokens:
             original_length = len(prompt)
             compressed_length = len(compressed)
+            symbols_used = sum(1 for symbol in glossary.keys() if symbol in compressed)
             print(f"🗜️  Compression Results:")
             print(f"   Original: {original_length} characters")
             print(f"   Compressed: {compressed_length} characters")
             print(f"   Savings: {savings} characters ({savings/original_length*100:.1f}% reduction)")
+            print(f"   Symbols used: {symbols_used}")
+            print(f"   Session: {session.session_name}")
             print(f"   Using model: {args.model}")
+            
+            # Show glossary cost info
+            if not args.no_glossary:
+                if session.has_system_message():
+                    print("   💰 Glossary cost: FREE (already sent in this session)")
+                else:
+                    glossary_tokens = len(build_system_prompt(args.system, glossary).split())
+                    print(f"   💰 Glossary cost: ~{glossary_tokens} tokens (one-time per session)")
+            
             print("=" * 50)
         
         prompt_to_send = compressed
@@ -172,18 +390,42 @@ Examples:
         prompt_to_send = prompt
         if args.show_tokens:
             print(f"📝 Sending uncompressed prompt ({len(prompt)} characters)")
+            print(f"   Session: {session.session_name}")
             print(f"   Using model: {args.model}")
             print("=" * 50)
+    
+    # Add system message if this is a new session and we need glossary
+    if not session.has_system_message() and not args.no_glossary:
+        system_prompt = build_system_prompt(args.system, glossary)
+        if system_prompt:
+            session.add_system_message(system_prompt)
+    elif not session.has_system_message() and args.system:
+        # Add user's system prompt even without glossary
+        session.add_system_message(args.system)
+    
+    # Add user message to session
+    session.add_user_message(prompt_to_send)
     
     # Send to API
     print("🤖 Calling OpenAI API...", end="", flush=True)
     response = call_openai_api(
-        prompt=prompt_to_send,
-        model=args.model,
-        system_prompt=args.system
+        messages=session.get_messages(),
+        model=args.model
     )
     print(" ✅")
     print()
+    
+    # Add assistant response to session
+    try:
+        assistant_content = response["choices"][0]["message"]["content"]
+        usage = response.get("usage", {})
+        session.add_assistant_message(assistant_content, usage)
+        
+        # Save session
+        session.save_session()
+        
+    except (KeyError, IndexError) as e:
+        print(f"⚠️  Warning: Could not save assistant response: {e}")
     
     # Process response
     if args.json:

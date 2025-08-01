@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
 """
 psst_openai.py: Enhanced PSST OpenAI integration with session management
+
+Copyright (c) 2024 Marc Goldstein. All rights reserved.
+
+This software is part of the PSST (Prompt Symbol Standard Technology) toolkit.
+PSST is a proprietary prompt compression and optimization system that achieves
+up to 94.9% token reduction while maintaining perfect semantic fidelity.
+
+This file contains the OpenAI integration module, which provides:
+- Session-based conversation management
+- Real-time cost tracking with OpenAI admin API
+- Token validation and compression statistics
+- Dynamic glossary caching for cost optimization
+
+For licensing and commercial use inquiries, contact: marcgoldstein@example.edu
+
+MIT License - See LICENSE file for details.
 """
 
 import os

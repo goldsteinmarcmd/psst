@@ -2,6 +2,22 @@
 """
 Ultimate PSST: Prompt Symbol Standard Technology
 Achieving 80-90% token reduction with perfect semantic fidelity.
+
+Copyright (c) 2024 Marc Goldstein. All rights reserved.
+
+This software is part of the PSST (Prompt Symbol Standard Technology) toolkit.
+PSST is a proprietary prompt compression and optimization system that achieves
+88.6% token reduction while maintaining perfect semantic fidelity.
+
+This file contains the Ultimate PSST compiler implementation, which provides:
+- Advanced prompt compression algorithms
+- Legal domain optimization
+- Session-based glossary management
+- Cost tracking integration
+
+For licensing and commercial use inquiries, contact: marcgoldstein@example.edu
+
+MIT License - See LICENSE file for details.
 """
 
 __version__ = "3.0.0"

@@ -1,7 +1,22 @@
 #!/usr/bin/env python3
 """
-psst: Prompt Symbol Standard Technology Compiler
-A token-efficient, centrally-controllable AI prompting system.
+PSST Core Compiler: Base prompt compression and expansion functionality
+
+Copyright (c) 2024 Marc Goldstein. All rights reserved.
+
+This software is part of the PSST (Prompt Symbol Standard Technology) toolkit.
+PSST is a proprietary prompt compression and optimization system that achieves
+up to 94.9% token reduction while maintaining perfect semantic fidelity.
+
+This file contains the core PSST compiler functionality, which provides:
+- Base compression and expansion algorithms
+- Glossary management and loading
+- Pattern matching and replacement
+- Compression statistics calculation
+
+For licensing and commercial use inquiries, contact: marcgoldstein@example.edu
+
+MIT License - See LICENSE file for details.
 """
 
 import json

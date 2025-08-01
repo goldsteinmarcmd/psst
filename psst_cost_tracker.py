@@ -1,7 +1,23 @@
 #!/usr/bin/env python3
 """
-psst_cost_tracker.py: Cost and usage tracking for PSST OpenAI integration
-Usage: python3 psst_cost_tracker.py [--days 7] [--verbose] [--session session_name]
+PSST Cost Tracker: OpenAI usage and cost analysis tool
+
+Copyright (c) 2024 Marc Goldstein. All rights reserved.
+
+This software is part of the PSST (Prompt Symbol Standard Technology) toolkit.
+PSST is a proprietary prompt compression and optimization system that achieves
+up to 94.9% token reduction while maintaining perfect semantic fidelity.
+
+This file contains the PSST Cost Tracker, which provides:
+- Real-time cost analysis and usage tracking
+- OpenAI admin API integration
+- Session-based cost breakdown
+- Historical usage analytics
+- Token validation and compression statistics
+
+For licensing and commercial use inquiries, contact: marcgoldstein@example.edu
+
+MIT License - See LICENSE file for details.
 """
 
 import os

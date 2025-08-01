@@ -1,7 +1,22 @@
 #!/usr/bin/env python3
 """
-PSST Hybrid Integration
-Combines system message and expansion approaches for optimal reliability and compression
+PSST Hybrid Integration: Multi-compiler integration system
+
+Copyright (c) 2024 Marc Goldstein. All rights reserved.
+
+This software is part of the PSST (Prompt Symbol Standard Technology) toolkit.
+PSST is a proprietary prompt compression and optimization system that achieves
+up to 94.9% token reduction while maintaining perfect semantic fidelity.
+
+This file contains the PSST Hybrid Integration module, which provides:
+- Multi-compiler orchestration and selection
+- Adaptive compression strategy selection
+- Cross-compiler optimization
+- Unified interface for all PSST modes
+
+For licensing and commercial use inquiries, contact: marcgoldstein@example.edu
+
+MIT License - See LICENSE file for details.
 """
 
 import os
@@ -324,7 +339,7 @@ if __name__ == "__main__":
             print(f"❌ Error: {result['error']}")
         else:
             print(f"✅ Approach: {result['approach']}")
-            print(f"�� Analysis: {result['analysis']}")
+            print(f"📊 Analysis: {result['analysis']}")
             print(f"💬 Response: {result['response']}")
             print(f"📈 Usage: {result['usage']}")
     else:

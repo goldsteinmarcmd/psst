@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-psst-openai: Send psst-compressed prompts to OpenAI API with conversation sessions
-Usage: psst-openai "Your prompt here" [--session session_name] [--new-session] [--list-sessions]
+psst_openai.py: Enhanced PSST OpenAI integration with session management
 """
 
 import os

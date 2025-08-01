@@ -7,45 +7,96 @@ from setuptools import setup, find_packages
 import os
 
 # Read the README file
-with open("ReadMe.md", "r", encoding="utf-8") as fh:
+with open("README_PSST.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
     name="psst-toolkit",
-    version="1.2.0",
+    version="3.2.0",
     author="Marc Goldstein",
     author_email="marcgoldstein@example.edu",
-    description="Prompt Symbol Standard Technology - Token-efficient AI prompting with conversation sessions",
+    description="Prompt Symbol Standard Technology - 88.6% token reduction with perfect semantic fidelity",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/goldsteinmarcmd/pss",
-    py_modules=["psst_compiler"],
+    url="https://github.com/goldsteinmarcmd/psst",
+    py_modules=[
+        "psst_compiler",
+        "psst_ultimate", 
+        "dynamic_psst_compiler",
+        "enhanced_psst_compiler",
+        "psst_hybrid_integration",
+        "psst_cost_tracker",
+        "psst_openai"
+    ],
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Compilers",
         "Topic :: Text Processing :: Linguistic",
-        "Intended Audience :: Developers",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     python_requires=">=3.7",
     install_requires=[
         "requests>=2.25.0",
+        "jellyfish>=0.9.0",
+        "numpy>=1.19.0",
+        "pandas>=1.3.0",
     ],
+    extras_require={
+        "dev": [
+            "pytest>=6.0",
+            "black>=21.0",
+            "flake8>=3.8",
+        ],
+        "openai": [
+            "openai>=1.0.0",
+        ],
+        "enhanced": [
+            "pandas>=1.3.0",
+        ],
+    },
     scripts=[
-        "psst-compress",
-        "psst-expand", 
-        "psst-annotate",
-        "psst-compare",
-        "psst-openai"
+        "psst-learn",
+        "psst-hybrid",
+        "psst-openai",
     ],
     package_data={
-        "": ["core_glossary.json", "examples/*.txt", "examples/*.psst"]
+        "": [
+            "*.json",
+            "examples/*.txt", 
+            "examples/*.psst"
+        ]
     },
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "psst=psst_compiler:main",
+            "psst=psst_ultimate:main",
+            "psst-ultimate=psst_ultimate:main",
+            "psst-dynamic=dynamic_psst_compiler:main",
+            "psst-enhanced=enhanced_psst_compiler:main",
+            "psst-hybrid=psst_hybrid_integration:main",
+            "psst-openai=psst_openai:main",
+            "psst-cost-tracker=psst_cost_tracker:main",
         ],
+    },
+    keywords=[
+        "ai", "prompting", "compression", "tokens", "openai", 
+        "gpt", "llm", "efficiency", "cost-optimization", "session-management",
+        "cost-tracking", "token-validation"
+    ],
+    project_urls={
+        "Bug Reports": "https://github.com/goldsteinmarcmd/psst/issues",
+        "Source": "https://github.com/goldsteinmarcmd/psst",
+        "Documentation": "https://github.com/goldsteinmarcmd/psst/blob/main/PSST_USER_MANUAL.md",
     },
 ) 
